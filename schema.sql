@@ -28,3 +28,8 @@ CREATE TABLE class_equipment (    -- M:N: gym_class × equipment
     class_id INT, equip_id INT
 );
 -- TODO: INSERT ข้อมูลตัวอย่างทุกตาราง
+
+
+
+
+-- Hello World, My name is Linux
