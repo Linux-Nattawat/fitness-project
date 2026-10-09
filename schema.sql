@@ -12,72 +12,60 @@ DROP TABLE IF EXISTS gym_class;
 DROP TABLE IF EXISTS trainer;
 DROP TABLE IF EXISTS member;
 
--- ============================================================
--- 1. ตารางสมาชิก (member)
 CREATE TABLE member (
-    member_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    gender VARCHAR(10),
-    join_date DATE NOT NULL,
+    member_id   INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    gender      VARCHAR(10),
+    join_date   DATE NOT NULL,
     package_type ENUM('รายวัน', 'รายเดือน', 'รายปี') NOT NULL DEFAULT 'รายเดือน'
 );
 
--- ============================================================
--- 2. ตารางเทรนเนอร์ (trainer)
 CREATE TABLE trainer (
-    trainer_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    specialty VARCHAR(100),
-    phone VARCHAR(20),
+    trainer_id  INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    specialty   VARCHAR(100),
+    phone       VARCHAR(20),
     supervisor_id INT NULL,
     FOREIGN KEY (supervisor_id) REFERENCES trainer(trainer_id) ON DELETE SET NULL
 );
 
--- ============================================================
--- 3. ตารางคลาสเรียน (gym_class) -- 1:M จาก trainer
 CREATE TABLE gym_class (
-    class_id INT AUTO_INCREMENT PRIMARY KEY,
-    trainer_id INT NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    room VARCHAR(50),
-    capacity INT NOT NULL,
+    class_id    INT AUTO_INCREMENT PRIMARY KEY,
+    trainer_id  INT NOT NULL,
+    name        VARCHAR(100) NOT NULL,
+    room        VARCHAR(50),
+    capacity    INT NOT NULL,
     schedule_time DATETIME NOT NULL,
     FOREIGN KEY (trainer_id) REFERENCES trainer(trainer_id) ON DELETE RESTRICT
 );
 
--- ============================================================
--- 4. ตารางการจอง (booking) -- M:N #1: member x gym_class
 CREATE TABLE booking (
-    booking_id INT AUTO_INCREMENT PRIMARY KEY,
-    member_id INT NOT NULL,
-    class_id INT NOT NULL,
-    book_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    booking_id  INT AUTO_INCREMENT PRIMARY KEY,
+    member_id   INT NOT NULL,
+    class_id    INT NOT NULL,
+    book_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
     status ENUM('confirmed', 'attended', 'cancelled') DEFAULT 'confirmed',
     FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE,
     FOREIGN KEY (class_id) REFERENCES gym_class(class_id) ON DELETE CASCADE
 );
 
--- ============================================================
--- 5. ตารางอุปกรณ์ (equipment)
 CREATE TABLE equipment (
-    equip_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    zone VARCHAR(50),
-    status VARCHAR(50) DEFAULT 'พร้อมใช้งาน',
-    total_quantity INT NOT NULL DEFAULT 0 -- จำนวนสต็อกรวมที่มีทั้งหมดในยิม
+    equip_id    INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    zone        VARCHAR(50),
+    status      VARCHAR(50) DEFAULT 'พร้อมใช้งาน',
+    total_quantity INT NOT NULL DEFAULT 0 
 );
 
--- ============================================================
--- 6. ตารางอุปกรณ์ที่ใช้ต่อคลาส (class_equipment) -- M:N #2: gym_class x equipment
 CREATE TABLE class_equipment (
-    class_id INT NOT NULL,
-    equip_id INT NOT NULL,
-    quantity INT NOT NULL,
+    class_id    INT NOT NULL,
+    equip_id    INT NOT NULL,
+    quantity    INT NOT NULL,
     PRIMARY KEY (class_id, equip_id),
     FOREIGN KEY (class_id) REFERENCES gym_class(class_id) ON DELETE CASCADE,
     FOREIGN KEY (equip_id) REFERENCES equipment(equip_id) ON DELETE CASCADE
 );
--- TODO: INSERT ข้อมูลตัวอย่างทุกตาราง
+
 INSERT INTO trainer (trainer_id, name, specialty, phone, supervisor_id) VALUES
 (1, 'สมชาย สายลุย', 'มวยไทย / คาร์ดิโอ', '081-111-1111', NULL),
 (2, 'วิภาวดี สุขภาพดี', 'โยคะ / พิลาทิส', '082-222-2222', 1),
@@ -86,7 +74,6 @@ INSERT INTO trainer (trainer_id, name, specialty, phone, supervisor_id) VALUES
 (5, 'ณัฐพล ขี่พายุ', 'สปินนิ่งไบค์ / HIIT', '085-555-5555', 1),
 (6, 'ชัชวาลย์ ยืดเหยียด', 'ยืดกล้ามเนื้อ / กายภาพ', '086-666-6666', 2);
 
--- 2. ข้อมูลสมาชิก (ระบุ package_type รายวัน, รายเดือน, รายปี)
 INSERT INTO member (member_id, name, gender, join_date, package_type) VALUES
 (1, 'ธนกฤต ชัยชนะ', 'ชาย', '2026-01-10', 'รายปี'),
 (2, 'ศิริพร บุญมี', 'หญิง', '2026-02-15', 'รายเดือน'),
@@ -97,7 +84,6 @@ INSERT INTO member (member_id, name, gender, join_date, package_type) VALUES
 (7, 'ปวริศ มั่งคั่ง', 'ชาย', '2026-07-05', 'รายวัน'),
 (8, 'นภัสสร อ่อนหวาน', 'หญิง', '2026-08-18', 'รายปี');
 
--- 3. ข้อมูลคลาสเรียน
 INSERT INTO gym_class (class_id, trainer_id, name, room, capacity, schedule_time) VALUES
 (1, 1, 'มวยไทยเบิร์นไขมัน', 'Studio A', 20, '2026-10-01 09:00:00'),
 (2, 2, 'โยคะยามเช้า', 'Studio B', 15, '2026-10-01 10:30:00'),
@@ -106,7 +92,6 @@ INSERT INTO gym_class (class_id, trainer_id, name, room, capacity, schedule_time
 (5, 5, 'สปินนิ่งไบค์ปั่นแหลก', 'Cycling Room', 15, '2026-10-01 18:30:00'),
 (6, 1, 'มวยไทยแอดวานซ์', 'Studio A', 15, '2026-10-02 18:00:00');
 
--- 4. ข้อมูลอุปกรณ์
 INSERT INTO equipment (equip_id, name, zone, status, total_quantity) VALUES
 (1, 'นวมชกมวย', 'Boxing Zone', 'พร้อมใช้งาน', 30),
 (2, 'เชือกกระโดด', 'Boxing Zone', 'พร้อมใช้งาน', 25),
@@ -115,18 +100,16 @@ INSERT INTO equipment (equip_id, name, zone, status, total_quantity) VALUES
 (5, 'ดัมเบล 5kg', 'Weight Zone', 'พร้อมใช้งาน', 20),
 (6, 'สเต็ปแอโรบิก', 'Studio A', 'พร้อมใช้งาน', 25);
 
--- 5. ข้อมูลอุปกรณ์ที่ใช้ต่อคลาส (class_equipment)
 INSERT INTO class_equipment (class_id, equip_id, quantity) VALUES
-(1, 1, 20), -- นวม 20 คู่
-(1, 2, 20), -- เชือกกระโดด 20 เส้น
-(2, 3, 15), -- เสื่อโยคะ 15 ผืน
-(2, 4, 15), -- บล็อกโยคะ 15 ชิ้น
-(3, 5, 12), -- ดัมเบล 12 คู่
-(4, 6, 25), -- สเต็ปแอโรบิก 25 ชิ้น
-(6, 1, 15), -- มวยไทยแอดวานซ์ นวม 15 คู่
-(6, 2, 15); -- มวยไทยแอดวานซ์ เชือกกระโดด 15 เส้น
+(1, 1, 20), 
+(1, 2, 20), 
+(2, 3, 15), 
+(2, 4, 15), 
+(3, 5, 12), 
+(4, 6, 25), 
+(6, 1, 15), 
+(6, 2, 15);
 
--- 6. ข้อมูลการจอง (booking)
 INSERT INTO booking (member_id, class_id, book_date, status) VALUES
 (1, 1, '2026-09-28 08:30:00', 'confirmed'),
 (2, 1, '2026-09-28 09:00:00', 'confirmed'),

@@ -281,11 +281,11 @@ def report_class_equipment():
         SELECT 
             c.class_id,
             c.name AS class_name,
-            e.equipment_id,
+            e.equip_id,
             e.name AS equipment_name
         FROM class_equipment ce
         INNER JOIN gym_class c ON ce.class_id = c.class_id
-        INNER JOIN equipment e ON ce.equipment_id = e.equipment_id
-        ORDER BY c.class_id, e.equipment_id
+        INNER JOIN equipment e ON ce.equip_id = e.equip_id
+        ORDER BY c.class_id, e.equip_id
     """
     return run_query(sql)
