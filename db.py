@@ -39,9 +39,9 @@ def search_members(filters):
     if filters.get("gender"):
         sql += " AND gender = %s"
         params.append(filters["gender"])
-    if filters.get("status"):
-        sql += " AND status = %s"
-        params.append(filters["status"])
+    if filters.get("package_type"):
+        sql += " AND package_type = %s"
+        params.append(filters["package_type"])
     sql += " ORDER BY member_id"
     return run_query(sql, params)   
 

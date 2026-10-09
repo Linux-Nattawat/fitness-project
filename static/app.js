@@ -19,8 +19,8 @@ const ENTITIES = {
         "type": "select",
         "options": [
           "",
-          "M",
-          "F"
+          "ชาย",
+          "หญิง"
         ]
       },
       {
@@ -29,8 +29,8 @@ const ENTITIES = {
         "type": "select",
         "options": [
           "",
-          "basic",
-          "premium"
+          "รายปี",
+          "รายเดือน"
         ]
       }
     ],
@@ -45,8 +45,8 @@ const ENTITIES = {
         "label": "เพศ",
         "type": "select",
         "options": [
-          "M",
-          "F"
+          "ชาย",
+          "หญิง"
         ]
       },
       {
@@ -59,8 +59,8 @@ const ENTITIES = {
         "label": "แพ็กเกจ",
         "type": "select",
         "options": [
-          "basic",
-          "premium"
+          "รายปี",
+          "รายเดือน"
         ]
       }
     ]
@@ -130,7 +130,8 @@ const ENTITIES = {
         "type": "select",
         "options": [
           "",
-          "booked",
+          "confirmed",
+          "attended",
           "cancelled"
         ]
       }
@@ -156,7 +157,8 @@ const ENTITIES = {
         "label": "สถานะ",
         "type": "select",
         "options": [
-          "booked",
+          "confirmed",
+          "attended",
           "cancelled"
         ]
       }
