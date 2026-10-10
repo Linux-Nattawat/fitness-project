@@ -29,6 +29,7 @@ const ENTITIES = {
         "type": "select",
         "options": [
           "",
+          "รายวัน",
           "รายปี",
           "รายเดือน"
         ]
@@ -59,6 +60,7 @@ const ENTITIES = {
         "label": "แพ็กเกจ",
         "type": "select",
         "options": [
+          "รายวัน",
           "รายปี",
           "รายเดือน"
         ]
@@ -105,7 +107,7 @@ const ENTITIES = {
       {
         "key": "schedule_time",
         "label": "เวลา",
-        "type": "text"
+        "type": "date"
       }
     ]
   },

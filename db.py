@@ -33,9 +33,6 @@ def search_members(filters):
     if filters.get("name"):
         sql += " AND name LIKE %s"
         params.append("%" + filters["name"] + "%")
-    if filters.get("email"):
-        sql += " AND email LIKE %s"
-        params.append("%" + filters["email"] + "%")
     if filters.get("gender"):
         sql += " AND gender = %s"
         params.append(filters["gender"])
