@@ -165,6 +165,45 @@ const ENTITIES = {
         ]
       }
     ]
+  },
+  "reviews": {
+    "label": "รีวิว",
+    "api": "/api/reviews",
+    "idKey": "review_id",
+    "search": [
+      {
+        "key": "member_id",
+        "label": "รหัสสมาชิก",
+        "type": "number"
+      },
+      {
+        "key": "class_id",
+        "label": "รหัสคลาส",
+        "type": "number"
+      }
+    ],
+    "form": [
+      {
+        "key": "member_id",
+        "label": "รหัสสมาชิก",
+        "type": "number"
+      },
+      {
+        "key": "class_id",
+        "label": "รหัสคลาส",
+        "type": "number"
+      },
+      {
+        "key": "rating",
+        "label": "คะแนน",
+        "type": "number"
+      },
+      {
+        "key": "comment",
+        "label": "ความคิดเห็น",
+        "type": "text"
+      }
+    ]
   }
 };
 
