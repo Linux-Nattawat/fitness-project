@@ -57,6 +57,7 @@ CREATE TABLE equipment (
     total_quantity INT NOT NULL DEFAULT 0 
 );
 
+
 CREATE TABLE class_equipment (
     class_id    INT NOT NULL,
     equip_id    INT NOT NULL,
@@ -64,6 +65,18 @@ CREATE TABLE class_equipment (
     PRIMARY KEY (class_id, equip_id),
     FOREIGN KEY (class_id) REFERENCES gym_class(class_id) ON DELETE CASCADE,
     FOREIGN KEY (equip_id) REFERENCES equipment(equip_id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS review (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    member_id INT NOT NULL,
+    class_id INT NOT NULL,
+    rating INT NOT NULL,
+    comment TEXT,
+    CHECK (rating BETWEEN 1 AND 5),
+    FOREIGN KEY (member_id)
+        REFERENCES member(member_id) ON DELETE CASCADE,
+    FOREIGN KEY (class_id)
+        REFERENCES gym_class(class_id) ON DELETE CASCADE
 );
 
 INSERT INTO trainer (trainer_id, name, specialty, phone, supervisor_id) VALUES
@@ -128,6 +141,87 @@ INSERT INTO booking (member_id, class_id, book_date, status) VALUES
 (3, 6, '2026-09-28 13:00:00', 'confirmed');
 
 
+-- สมาชิกเพิ่ม ID 9–14
+INSERT INTO member
+(member_id, name, gender, join_date, package_type)
+VALUES
+(9, 'กวิน สุขใจ', 'ชาย', '2026-09-01', 'รายปี'),
+(10, 'มินตรา ใจดี', 'หญิง', '2026-09-02', 'รายเดือน'),
+(11, 'ภูริ แข็งแรง', 'ชาย', '2026-09-03', 'รายเดือน'),
+(12, 'ณิชา สดใส', 'หญิง', '2026-09-04', 'รายปี'),
+(13, 'ธันวา มุ่งมั่น', 'ชาย', '2026-09-05', 'รายวัน'),
+(14, 'แพรวา รักสุขภาพ', 'หญิง', '2026-09-06', 'รายเดือน');
+
+
+-- เทรนเนอร์เพิ่ม ID 7–8
+INSERT INTO trainer
+(trainer_id, name, specialty, phone, supervisor_id)
+VALUES
+(7, 'ต้น กล้ามแน่น', 'เวทเทรนนิ่ง / HIIT', '080-000-0101', 1),
+(8, 'ฝน ยืดสบาย', 'โยคะ / พิลาทิส', '080-000-0102', 2);
+
+
+-- คลาสเพิ่ม ID 7–9
+INSERT INTO gym_class
+(class_id, trainer_id, name, room, capacity, schedule_time)
+VALUES
+(7, 7, 'เวทพื้นฐานสำหรับมือใหม่', 'Weight Room', 12, '2026-10-10 09:00:00'),
+(8, 8, 'พิลาทิสเสริมความแข็งแรง', 'Studio B', 15, '2026-10-11 10:00:00'),
+(9, 7, 'HIIT คาร์ดิโอช่วงเย็น', 'Studio A', 20, '2026-10-12 17:00:00');
+
+
+-- อุปกรณ์เพิ่ม ID 7–9
+INSERT INTO equipment
+(equip_id, name, zone, status, total_quantity)
+VALUES
+(7, 'ดัมเบล 3kg', 'Weight Zone', 'พร้อมใช้งาน', 24),
+(8, 'เสื่อพิลาทิส', 'Yoga Zone', 'พร้อมใช้งาน', 20),
+(9, 'เคตเทิลเบล 4kg', 'Studio A', 'พร้อมใช้งาน', 20);
+
+
+-- อุปกรณ์ที่ใช้ในคลาสใหม่
+INSERT INTO class_equipment
+(class_id, equip_id, quantity)
+VALUES
+(7, 7, 12),
+(8, 8, 15),
+(9, 9, 20);
+
+
+-- การจองเพิ่ม ID 16–23
+INSERT INTO booking
+(booking_id, member_id, class_id, book_date, status)
+VALUES
+(16, 9, 7, '2026-10-08 08:00:00', 'attended'),
+(17, 10, 7, '2026-10-08 08:15:00', 'attended'),
+(18, 11, 7, '2026-10-08 08:30:00', 'attended'),
+(19, 10, 8, '2026-10-09 09:00:00', 'attended'),
+(20, 12, 8, '2026-10-09 09:15:00', 'attended'),
+(21, 13, 9, '2026-10-10 10:00:00', 'attended'),
+(22, 14, 9, '2026-10-10 10:15:00', 'attended'),
+(23, 9, 9, '2026-10-10 10:30:00', 'attended');
+SELECT *
+FROM member
+
+INSERT INTO fitness.review
+(review_id, member_id, class_id, rating, comment)
+VALUES
+(1, 9, 7, 5,
+ 'เทรนเนอร์อธิบายชัดเจน เหมาะกับคนเริ่มออกกำลังกาย'),
+(2, 10, 7, 4,
+ 'สอนดีและดูแลทั่วถึง อยากให้เพิ่มเวลาวอร์มอัป'),
+(3, 11, 7, 5,
+ 'ได้เรียนรู้วิธีใช้อุปกรณ์และท่าฝึกพื้นฐานครบ'),
+(4, 10, 8, 5,
+ 'ห้องสะอาด ผู้สอนช่วยปรับท่าให้ตลอด'),
+(5, 12, 8, 4,
+ 'บรรยากาศดี แต่บางช่วงสอนเร็วไปเล็กน้อย'),
+(6, 13, 9, 5,
+ 'คลาสสนุกมาก ได้ออกกำลังกายเต็มที่'),
+(7, 14, 9, 3,
+ 'ค่อนข้างหนักสำหรับมือใหม่ อยากให้มีท่าทางเลือกเพิ่ม'),
+(8, 9, 9, 4,
+ 'เพลงสนุก เทรนเนอร์ให้กำลังใจดี อยากให้เพิ่มช่วงพัก');
 
 -- Hello World, My name is Linux
 -- im the owner of this Project with my friend Sumolnwza007

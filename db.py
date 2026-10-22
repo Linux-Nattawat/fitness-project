@@ -5,26 +5,70 @@ import mysql.connector
 import config
 
 
+REVIEW_SELECT = """
+    SELECT
+        r.review_id,
+        r.member_id,
+        m.name AS member_name,
+        r.class_id,
+        c.name AS class_name,
+        r.rating,
+        r.comment
+    FROM review r
+    INNER JOIN member m ON r.member_id = m.member_id
+    INNER JOIN gym_class c ON r.class_id = c.class_id
+"""
+
+
 def get_connection():
     return mysql.connector.connect(
-        host=config.DB_HOST, user=config.DB_USER, password=config.DB_PASSWORD,
-        database=config.DB_NAME, port=config.DB_PORT)
+        host=config.DB_HOST,
+        user=config.DB_USER,
+        password=config.DB_PASSWORD,
+        database=config.DB_NAME,
+        port=config.DB_PORT
+    )
 
 
 def run_query(sql, params=None):
-    """รัน SELECT คืนผลเป็น list ของ dict"""
-    conn = get_connection(); cur = conn.cursor(dictionary=True)
-    cur.execute(sql, params or ()); rows = cur.fetchall()
-    cur.close(); conn.close(); return rows
+    conn = get_connection()
+    cur = None
+
+    try:
+        cur = conn.cursor(dictionary=True)
+        cur.execute(sql, params or ())
+        return cur.fetchall()
+
+    finally:
+        if cur is not None:
+            cur.close()
+        conn.close()
 
 
 def run_command(sql, params=None):
-    """รัน INSERT / UPDATE / DELETE แล้ว commit"""
-    conn = get_connection(); cur = conn.cursor()
-    cur.execute(sql, params or ()); conn.commit()
-    out = {"new_id": cur.lastrowid, "affected": cur.rowcount}
-    cur.close(); conn.close(); return out
+    conn = get_connection()
+    cur = None
 
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, params or ())
+
+        result = {
+            "new_id": cur.lastrowid,
+            "affected": cur.rowcount
+        }
+
+        conn.commit()
+        return result
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        if cur is not None:
+            cur.close()
+        conn.close()
 
 # ---------- สมาชิก (member) ----------
 def search_members(filters):
@@ -115,7 +159,7 @@ def create_class(data):
     sql = """
         INSERT INTO gym_class (name, trainer_id, room, capacity, schedule_time)
         VALUES (%s, %s, %s, %s, %s)
-    """
+    """ 
     params = (
         data.get("name"),
         data.get("trainer_id"),
@@ -212,6 +256,108 @@ def delete_booking(booking_id):
     sql = "DELETE FROM booking WHERE booking_id = %s"
     return run_command(sql, (booking_id,))
 
+def review_number(value, label, maximum=2147483647):
+    text = str(value).strip()
+
+    if not text.isascii() or not text.isdigit() or len(text) > 10:
+        raise ValueError(
+            f"{label}ต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง {maximum}"
+        )
+
+    number = int(text)
+
+    if not 1 <= number <= maximum:
+        raise ValueError(
+            f"{label}ต้องเป็นจำนวนเต็มตั้งแต่ 1 ถึง {maximum}"
+        )
+
+    return number
+
+
+def review_values(data):
+    if not isinstance(data, dict):
+        raise ValueError("ข้อมูลรีวิวต้องเป็น JSON object")
+
+    member_id = review_number(data.get("member_id"), "รหัสสมาชิก")
+    class_id = review_number(data.get("class_id"), "รหัสคลาส")
+    rating = review_number(data.get("rating"), "คะแนน", 5)
+
+    comment = data.get("comment", "")
+
+    if not isinstance(comment, str) or len(comment) > 2000:
+        raise ValueError(
+            "ความคิดเห็นต้องเป็นข้อความไม่เกิน 2,000 ตัวอักษร"
+        )
+
+    return member_id, class_id, rating, comment.strip()
+
+
+def search_reviews(filters):
+    sql = REVIEW_SELECT + " WHERE 1=1"
+    params = []
+
+    if filters.get("member_id"):
+        sql += " AND r.member_id = %s"
+        params.append(
+            review_number(filters["member_id"], "รหัสสมาชิก")
+        )
+
+    if filters.get("class_id"):
+        sql += " AND r.class_id = %s"
+        params.append(
+            review_number(filters["class_id"], "รหัสคลาส")
+        )
+
+    sql += " ORDER BY r.review_id ASC"
+
+    return run_query(sql, params)
+
+
+def get_review(review_id):
+    sql = REVIEW_SELECT + " WHERE r.review_id = %s"
+    rows = run_query(sql, (review_id,))
+
+    if not rows:
+        raise LookupError("ไม่พบรีวิวนี้")
+
+    return rows[0]
+
+
+def create_review(data):
+    sql = """
+        INSERT INTO review (member_id, class_id, rating, comment)
+        VALUES (%s, %s, %s, %s)
+    """
+
+    return run_command(sql, review_values(data))
+
+
+def update_review(review_id, data):
+    values = review_values(data)
+
+    # ตรวจสอบว่ามีรีวิวนี้อยู่
+    get_review(review_id)
+
+    sql = """
+        UPDATE review
+        SET member_id = %s,
+            class_id = %s,
+            rating = %s,
+            comment = %s
+        WHERE review_id = %s
+    """
+
+    return run_command(sql, values + (review_id,))
+
+
+def delete_review(review_id):
+    sql = "DELETE FROM review WHERE review_id = %s"
+    result = run_command(sql, (review_id,))
+
+    if result["affected"] == 0:
+        raise LookupError("ไม่พบรีวิวนี้")
+
+    return result
 
 # ============================================================
 #  REPORT (รายงาน — ใช้ JOIN + GROUP BY + subquery)

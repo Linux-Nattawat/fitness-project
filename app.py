@@ -3,6 +3,7 @@
 #  รัน:  python app.py  แล้วเปิด http://127.0.0.1:5000
 # ============================================================
 from flask import Flask, request, jsonify, render_template
+from mysql.connector import IntegrityError
 import db
 
 app = Flask(__name__)
@@ -10,11 +11,56 @@ app = Flask(__name__)
 
 def safe(fn, *args, **kwargs):
     try:
-        return jsonify({"ok": True, "data": fn(*args, **kwargs)})
+        return jsonify({
+            "ok": True,
+            "data": fn(*args, **kwargs)
+        })
+
+    except ValueError as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 400
+
+    except LookupError as e:
+        return jsonify({
+            "ok": False,
+            "error": str(e)
+        }), 404
+
+    except IntegrityError as e:
+        if e.errno == 1452:
+            message = (
+                "ไม่พบรหัสอ้างอิง "
+                "กรุณาตรวจสอบรหัสสมาชิกหรือรหัสคลาส"
+            )
+        elif e.errno == 1062:
+            message = "มีข้อมูลซ้ำกับรายการเดิม"
+        else:
+            message = "ข้อมูลขัดกับเงื่อนไขของฐานข้อมูล"
+
+        return jsonify({
+            "ok": False,
+            "error": message
+        }), 400
+
     except NotImplementedError as e:
-        return jsonify({"ok": False, "todo": True, "error": str(e)}), 501
-    except Exception as e:
-        return jsonify({"ok": False, "error": f"{type(e).__name__}: {e}"}), 500
+        return jsonify({
+            "ok": False,
+            "todo": True,
+            "error": str(e)
+        }), 501
+
+    except Exception:
+        app.logger.exception("API error")
+
+        return jsonify({
+            "ok": False,
+            "error": (
+                "เกิดข้อผิดพลาด "
+                "กรุณาดูรายละเอียดในหน้าต่างที่รัน Python"
+            )
+        }), 500
 
 
 @app.route("/")
@@ -109,6 +155,38 @@ def route_report_trainers_above_avg():
 def route_report_class_equipment():
     return safe(db.report_class_equipment)
 
+# ---- รีวิว ----
+
+@app.route("/api/reviews", methods=["GET"])
+def reviews_list():
+    return safe(db.search_reviews, request.args.to_dict())
+
+
+@app.route("/api/reviews/<int:_id>", methods=["GET"])
+def review_get(_id):
+    return safe(db.get_review, _id)
+
+
+@app.route("/api/reviews", methods=["POST"])
+def review_create():
+    return safe(
+        db.create_review,
+        request.get_json(silent=True)
+    )
+
+
+@app.route("/api/reviews/<int:_id>", methods=["PUT"])
+def review_update(_id):
+    return safe(
+        db.update_review,
+        _id,
+        request.get_json(silent=True)
+    )
+
+
+@app.route("/api/reviews/<int:_id>", methods=["DELETE"])
+def review_delete(_id):
+    return safe(db.delete_review, _id)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
