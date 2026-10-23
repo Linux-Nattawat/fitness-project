@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS equipment;
 DROP TABLE IF EXISTS gym_class;
 DROP TABLE IF EXISTS trainer;
 DROP TABLE IF EXISTS member;
+DROP TABLE IF EXISTS review;
 
 CREATE TABLE member (
     member_id   INT AUTO_INCREMENT PRIMARY KEY,
@@ -66,7 +67,7 @@ CREATE TABLE class_equipment (
     FOREIGN KEY (class_id) REFERENCES gym_class(class_id) ON DELETE CASCADE,
     FOREIGN KEY (equip_id) REFERENCES equipment(equip_id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS review (
+CREATE TABLE review (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
     member_id INT NOT NULL,
     class_id INT NOT NULL,
@@ -141,7 +142,6 @@ INSERT INTO booking (member_id, class_id, book_date, status) VALUES
 (3, 6, '2026-09-28 13:00:00', 'confirmed');
 
 
--- สมาชิกเพิ่ม ID 9–14
 INSERT INTO member
 (member_id, name, gender, join_date, package_type)
 VALUES
@@ -153,7 +153,6 @@ VALUES
 (14, 'แพรวา รักสุขภาพ', 'หญิง', '2026-09-06', 'รายเดือน');
 
 
--- เทรนเนอร์เพิ่ม ID 7–8
 INSERT INTO trainer
 (trainer_id, name, specialty, phone, supervisor_id)
 VALUES
@@ -161,7 +160,6 @@ VALUES
 (8, 'ฝน ยืดสบาย', 'โยคะ / พิลาทิส', '080-000-0102', 2);
 
 
--- คลาสเพิ่ม ID 7–9
 INSERT INTO gym_class
 (class_id, trainer_id, name, room, capacity, schedule_time)
 VALUES
@@ -170,7 +168,6 @@ VALUES
 (9, 7, 'HIIT คาร์ดิโอช่วงเย็น', 'Studio A', 20, '2026-10-12 17:00:00');
 
 
--- อุปกรณ์เพิ่ม ID 7–9
 INSERT INTO equipment
 (equip_id, name, zone, status, total_quantity)
 VALUES
@@ -179,7 +176,6 @@ VALUES
 (9, 'เคตเทิลเบล 4kg', 'Studio A', 'พร้อมใช้งาน', 20);
 
 
--- อุปกรณ์ที่ใช้ในคลาสใหม่
 INSERT INTO class_equipment
 (class_id, equip_id, quantity)
 VALUES
@@ -188,7 +184,6 @@ VALUES
 (9, 9, 20);
 
 
--- การจองเพิ่ม ID 16–23
 INSERT INTO booking
 (booking_id, member_id, class_id, book_date, status)
 VALUES
@@ -203,25 +198,33 @@ VALUES
 SELECT *
 FROM member
 
-INSERT INTO fitness.review
-(review_id, member_id, class_id, rating, comment)
+INSERT INTO review
+(member_id, class_id, rating, comment)
 VALUES
-(1, 9, 7, 5,
+(9, 7, 5,
  'เทรนเนอร์อธิบายชัดเจน เหมาะกับคนเริ่มออกกำลังกาย'),
-(2, 10, 7, 4,
+(10, 8, 4,
  'สอนดีและดูแลทั่วถึง อยากให้เพิ่มเวลาวอร์มอัป'),
-(3, 11, 7, 5,
+(11, 9, 5,
  'ได้เรียนรู้วิธีใช้อุปกรณ์และท่าฝึกพื้นฐานครบ'),
-(4, 10, 8, 5,
+(10, 8, 5,
  'ห้องสะอาด ผู้สอนช่วยปรับท่าให้ตลอด'),
-(5, 12, 8, 4,
+(12, 8, 4,
  'บรรยากาศดี แต่บางช่วงสอนเร็วไปเล็กน้อย'),
-(6, 13, 9, 5,
+(13, 9, 5,
  'คลาสสนุกมาก ได้ออกกำลังกายเต็มที่'),
-(7, 14, 9, 3,
+(14, 9, 3,
  'ค่อนข้างหนักสำหรับมือใหม่ อยากให้มีท่าทางเลือกเพิ่ม'),
-(8, 9, 9, 4,
- 'เพลงสนุก เทรนเนอร์ให้กำลังใจดี อยากให้เพิ่มช่วงพัก');
+(9, 9, 4,
+ 'เพลงสนุก เทรนเนอร์ให้กำลังใจดี อยากให้เพิ่มช่วงพัก'),
+(1,1,1,
+ 'น่าเบื่อมากๆ เลยครับ'),
+(5,3,2,
+ 'ไม่ค่อยสนุกเท่าไหร่ครับ'),;
 
+ select * from review;
+
+ select gy.class_id, COUNT(*) as total from booking as bo join gym_class as gy on bo.class_id = gy.class_id where 1=1 GROUP BY gy.class_id;
+select COUNT(*) as total from booking where class_id = 1;
 -- Hello World, My name is Linux
 -- im the owner of this Project with my friend Sumolnwza007

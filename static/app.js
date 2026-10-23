@@ -180,6 +180,19 @@ const ENTITIES = {
         "key": "class_id",
         "label": "รหัสคลาส",
         "type": "number"
+      },
+      {
+        "key": "rating",
+        "label": "คะแนน",
+        "type": "select",
+        "options": [
+          "",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
       }
     ],
     "form": [
@@ -196,7 +209,14 @@ const ENTITIES = {
       {
         "key": "rating",
         "label": "คะแนน",
-        "type": "number"
+        "type": "select",
+        "options": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ]
       },
       {
         "key": "comment",

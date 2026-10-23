@@ -156,16 +156,13 @@ def route_report_class_equipment():
     return safe(db.report_class_equipment)
 
 # ---- รีวิว ----
-
 @app.route("/api/reviews", methods=["GET"])
 def reviews_list():
     return safe(db.search_reviews, request.args.to_dict())
 
-
 @app.route("/api/reviews/<int:_id>", methods=["GET"])
 def review_get(_id):
     return safe(db.get_review, _id)
-
 
 @app.route("/api/reviews", methods=["POST"])
 def review_create():
@@ -174,7 +171,6 @@ def review_create():
         request.get_json(silent=True)
     )
 
-
 @app.route("/api/reviews/<int:_id>", methods=["PUT"])
 def review_update(_id):
     return safe(
@@ -182,7 +178,6 @@ def review_update(_id):
         _id,
         request.get_json(silent=True)
     )
-
 
 @app.route("/api/reviews/<int:_id>", methods=["DELETE"])
 def review_delete(_id):

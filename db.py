@@ -5,21 +5,6 @@ import mysql.connector
 import config
 
 
-REVIEW_SELECT = """
-    SELECT
-        r.review_id,
-        r.member_id,
-        m.name AS member_name,
-        r.class_id,
-        c.name AS class_name,
-        r.rating,
-        r.comment
-    FROM review r
-    INNER JOIN member m ON r.member_id = m.member_id
-    INNER JOIN gym_class c ON r.class_id = c.class_id
-"""
-
-
 def get_connection():
     return mysql.connector.connect(
         host=config.DB_HOST,
@@ -106,6 +91,12 @@ def create_member(data):
         data.get("join_date"),
         data.get("package_type")
     )
+    if(data.get("name") == ""):
+        raise ValueError("กรุณากรอกชื่อสมาชิก")
+
+    if(data.get("join_date") == ""):
+        raise ValueError("กรุณาเลือกวันเข้าร่วมของสมาชิก")
+    
     return run_command(sql, params)
 
 
@@ -123,6 +114,13 @@ def update_member(member_id, data):
         data.get("package_type"),
         member_id
     )
+
+    if(data.get("name") == ""):
+        raise ValueError("กรุณากรอกชื่อสมาชิก")
+
+    if(data.get("join_date") == ""):
+        raise ValueError("กรุณาเลือกวันเข้าร่วมของสมาชิก")
+
     return run_command(sql, params)
 
 
@@ -167,6 +165,23 @@ def create_class(data):
         data.get("capacity"),
         data.get("schedule_time")
     )
+    getTrainer = """select * from trainer where trainer_id = %s"""
+    if (run_query(getTrainer, (data.get("trainer_id"),)) == []):
+        raise ValueError("ไม่พบเทรนเนอร์ ไม่สามารถสร้างคลาสเรียนได้")
+
+    if(data.get("name") == ""):
+        raise ValueError("กรุณากรอกชื่อคลาสเรียน")
+
+    if(data.get("room") == ""):
+        raise ValueError("กรุณากรอกห้องเรียน")
+
+    if((int)(data.get("capacity")) <= 0):
+        raise ValueError("จำนวนนักเรียนต้องมากกว่า 0")
+
+    if(data.get("schedule_time") == ""):
+        raise ValueError("กรุณาเลือกวันและเวลาของคลาสเรียน")
+
+    
     return run_command(sql, params)
 
 
@@ -185,6 +200,20 @@ def update_class(class_id, data):
         data.get("schedule_time"),
         class_id
     )
+    getTrainer = """select * from trainer where trainer_id = %s"""
+
+    if(data.get("room") == ""):
+        raise ValueError("กรุณากรอกห้องเรียน")
+    
+    if (run_query(getTrainer, (data.get("trainer_id"),)) == []):
+        raise ValueError("ไม่พบเทรนเนอร์ ไม่สามารถแก้ไขคลาสเรียนได้")
+    
+    if ((int)(data.get("capacity")) <= 0):
+        raise ValueError("จำนวนนักเรียนต้องมากกว่า 0")
+
+    if(data.get("schedule_time") == ""):
+        raise ValueError("กรุณาเลือกวันและเวลาของคลาสเรียน")
+
     return run_command(sql, params)
 
 
@@ -231,6 +260,40 @@ def create_booking(data):
         data.get("book_date"),
         data.get("status")
     )
+
+    getTotal = """select COUNT(*) as total from booking where class_id = %s"""
+    getCap = """select capacity from gym_class where class_id = %s"""
+    getMember = """select * from member where member_id = %s"""
+    getBookingMember = """select * from booking where member_id = %s"""
+    getClass = """select * from gym_class where class_id = %s"""
+
+    if(data.get("member_id") == ""):
+        raise ValueError("กรุณากรอกรหัสสมาชิก")
+
+    if(data.get("name") == ""):
+        raise ValueError("กรุณากรอกชื่อสมาชิก")
+
+    if(data.get("room") == ""):
+        raise ValueError("กรุณากรอกห้องเรียน")
+
+    if(data.get("class_id") == ""):
+        raise ValueError("กรุณากรอกรหัสคลาสเรียน")
+
+    if (run_query(getTotal, (data.get("class_id"),))[0]["total"] >= run_query(getCap, (data.get("class_id"),))[0]["capacity"]):
+        raise ValueError("คลาสเต็มแล้ว ไม่สามารถจองได้")
+    
+    if (run_query(getMember, (data.get("member_id"),)) == []):
+        raise ValueError("ไม่พบสมาชิก ไม่สามารถจองได้")
+
+    if (run_query(getBookingMember, (data.get("member_id"),)) != []):
+        raise ValueError("สมาชิกคนนี้ได้จองคลาสนี้ไปแล้ว ไม่สามารถจองซ้ำได้")
+
+    if (run_query(getClass, (data.get("class_id"),)) == []):
+        raise ValueError("ไม่พบคลาสเรียน ไม่สามารถจองได้")
+
+    if(data.get("book_date") == ""):
+        raise ValueError("กรุณาเลือกวันจอง")
+    
     return run_command(sql, params)
 
 
@@ -248,6 +311,18 @@ def update_booking(booking_id, data):
         data.get("status"),
         booking_id
     )
+    getMember = """select * from member where member_id = %s"""
+    getClass = """select * from gym_class where class_id = %s"""
+
+    if(run_query(getMember, (data.get("member_id"),)) == []):
+        raise ValueError("ไม่พบสมาชิก ไม่สามารถแก้ไขการจองได้")
+
+    if (run_query(getClass, (data.get("class_id"),)) == []):
+        raise ValueError("ไม่พบคลาสเรียน ไม่สามารถแก้ไขการจองได้")
+    
+    if(data.get("book_date") == ""):
+        raise ValueError("กรุณาเลือกวันและเวลาของการจอง")
+
     return run_command(sql, params)
 
 
@@ -255,6 +330,9 @@ def delete_booking(booking_id):
     """ลบ การจอง ตาม booking_id"""
     sql = "DELETE FROM booking WHERE booking_id = %s"
     return run_command(sql, (booking_id,))
+
+
+
 
 def review_number(value, label, maximum=2147483647):
     text = str(value).strip()
@@ -293,7 +371,18 @@ def review_values(data):
 
 
 def search_reviews(filters):
-    sql = REVIEW_SELECT + " WHERE 1=1"
+    sql = """SELECT
+            r.review_id,
+            r.member_id,
+            m.name AS member_name,
+            r.class_id,
+            c.name AS class_name,
+            r.rating,
+            r.comment
+        FROM review r
+        INNER JOIN member m ON r.member_id = m.member_id
+        INNER JOIN gym_class c ON r.class_id = c.class_id
+        WHERE 1=1"""
     params = []
 
     if filters.get("member_id"):
@@ -308,13 +397,29 @@ def search_reviews(filters):
             review_number(filters["class_id"], "รหัสคลาส")
         )
 
+    if filters.get("rating"):
+        sql += " AND r.rating = %s"
+        params.append(
+            review_number(filters["rating"], "คะแนน")
+        )
+
     sql += " ORDER BY r.review_id ASC"
 
     return run_query(sql, params)
 
 
 def get_review(review_id):
-    sql = REVIEW_SELECT + " WHERE r.review_id = %s"
+    sql = """SELECT
+            r.review_id,
+            r.member_id,
+            m.name AS member_name,
+            r.class_id,
+            c.name AS class_name,
+            r.rating,
+            r.comment
+        FROM review r
+        INNER JOIN member m ON r.member_id = m.member_id
+        INNER JOIN gym_class c ON r.class_id = c.class_id WHERE r.review_id = %s"""
     rows = run_query(sql, (review_id,))
 
     if not rows:
@@ -328,16 +433,33 @@ def create_review(data):
         INSERT INTO review (member_id, class_id, rating, comment)
         VALUES (%s, %s, %s, %s)
     """
+    getMember = """select * from member where member_id = %s"""
+    checkMember = """select * from review where member_id = %s and class_id = %s"""
+    getClass = """select * from gym_class where class_id = %s"""
+
+    if(data.get("member_id") == ""):
+        raise ValueError("กรุณากรอกรหัสสมาชิก")
+
+    if(data.get("class_id") == ""): 
+        raise ValueError("กรุณากรอกรหัสคลาสเรียน")
+
+    if (run_query(getMember, (data.get("member_id"),)) == []):
+        raise ValueError("ไม่พบสมาชิก ไม่สามารถสร้างรีวิวได้")
+    
+    if (run_query(checkMember, (data.get("member_id"), data.get("class_id")))) == []:
+        raise ValueError("สมาชิกคนนี้ยังไม่ได้จองคลาสนี้ ไม่สามารถสร้างรีวิวได้")
+
+    if (run_query(checkMember, (data.get("member_id"), data.get("class_id")))) != []:
+        raise ValueError("สมาชิกคนนี้ได้รีวิวคลาสนี้ไปแล้ว ไม่สามารถรีวิวซ้ำได้")
+
+    if (run_query(getClass, (data.get("class_id"),)) == []):
+        raise ValueError("ไม่พบคลาสเรียน ไม่สามารถสร้างรีวิวได้")
 
     return run_command(sql, review_values(data))
 
 
 def update_review(review_id, data):
     values = review_values(data)
-
-    # ตรวจสอบว่ามีรีวิวนี้อยู่
-    get_review(review_id)
-
     sql = """
         UPDATE review
         SET member_id = %s,
@@ -346,7 +468,16 @@ def update_review(review_id, data):
             comment = %s
         WHERE review_id = %s
     """
+    getMember = """select * from member where member_id = %s"""
+    getClass = """select * from gym_class where class_id = %s"""
+    
+    if (run_query(getMember, (data.get("member_id"),)) == []):
+        raise ValueError("ไม่พบสมาชิก ไม่สามารถแก้ไขรีวิวได้")
 
+    if (run_query(getClass, (data.get("class_id"),)) == []):
+        raise ValueError("ไม่พบคลาสเรียน ไม่สามารถแก้ไขรีวิวได้")
+
+    
     return run_command(sql, values + (review_id,))
 
 
